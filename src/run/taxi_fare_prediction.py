@@ -103,11 +103,16 @@ print('train_df_distance_within_one_km.shape=' )
 print(train_df_distance_within_one_km.shape)
 cluster_input_x=pd.DataFrame(train_df_distance_within_one_km[['pickup_longitude','pickup_latitude']],dtype=float).values
 
+cluster_input_x=np.multiply(cluster_input_x,100)
+
 # cluster_input_x=cluster_input_x.multiply(100)
 
 
 
-kmeans = KMeans(n_clusters=5, random_state=9).fit(cluster_input_x)
+kmeans = KMeans(n_clusters=10, random_state=9).fit(cluster_input_x)
+
+print('kmeans.cluster_centers_')
+print kmeans.cluster_centers_
 y_pred=kmeans.labels_
 
 y_pred_df=pd.DataFrame(y_pred)
