@@ -5,7 +5,7 @@ import  numpy as np
 import  os
 
 
-train_df=pd.read_csv('../data/train.csv',nrows=300000,parse_dates=["pickup_datetime"])
+train_df=pd.read_csv('../data/train.csv',nrows=100000,parse_dates=["pickup_datetime"])
 
 # print (train_df.dtypes)
 #
@@ -72,10 +72,70 @@ print('## 出发 终点 距离小于1km的地点')
 ## todo 可以查看此部分行程的开始 终止 点 有几种
 print(train_df[train_df['distance_km']<1].head())
 
+train_df['pickup_longitude']=train_df['pickup_longitude'].apply(lambda x:'%.2f' %x).astype(str)
+train_df['pickup_latitude']=train_df['pickup_latitude'].apply(lambda x:'%.2f' %x).astype(str)
+train_df['dropoff_longitude']=train_df['dropoff_longitude'].apply(lambda x:'%.2f' %x).astype(str)
+train_df['dropoff_latitude']=train_df['dropoff_latitude'].apply(lambda x:'%.2f' %x).astype(str)
+
+
+train_df_distance_within_one_km=train_df[train_df['distance_km']<1]
+
+train_df_distance_within_one_km.fare_amount.hist(bins=100, figsize=(14,3))
+
+train_df_distance_within_one_km.pivot_table('fare_amount', index='pickup_longitude', columns='dropoff_longitude').plot(figsize=(14,6))
+
+plt.ylabel('fare_amount')
+plt.show()
+
+
+plt.scatter(train_df_distance_within_one_km.pickup_longitude, train_df_distance_within_one_km.pickup_latitude)
+plt.xlabel('pickup_longitude')
+plt.ylabel('pickup_latitude')
+plt.title('train_df_distance_within_one_km')
+
+plt.show()
+
+
+##todo kmeans对上车 下车点位于1km内的地点进行聚类
+from sklearn.cluster import KMeans
+
+print('train_df_distance_within_one_km.shape=' )
+print(train_df_distance_within_one_km.shape)
+cluster_input_x=pd.DataFrame(train_df_distance_within_one_km[['pickup_longitude','pickup_latitude']],dtype=float).values
+
+# cluster_input_x=cluster_input_x.multiply(100)
+
+
+
+kmeans = KMeans(n_clusters=5, random_state=9).fit(cluster_input_x)
+y_pred=kmeans.labels_
+
+y_pred_df=pd.DataFrame(y_pred)
+cluster_input_x_df=pd.DataFrame(cluster_input_x)
+
+cluster_result=pd.DataFrame(pd.concat([cluster_input_x_df,y_pred_df],axis=1))
+cluster_result.to_csv('../data/cluster_result.csv')
+
+
+
+plt.scatter(cluster_input_x[:, 0], cluster_input_x[:, 1], c=y_pred)
+plt.xlabel('pickup_longitude')
+plt.ylabel('pickup_latitude')
+plt.title('kmeans result')
+plt.show()
+
+print('k-means predict result=')
+
+
+
+
 
 
 
 train_df=train_df[train_df['distance_km']>1]
+
+
+
 
 
 
@@ -148,10 +208,7 @@ plt.show()
 
 print('## 经纬度保留两位小数,精确到千米')
 
-train_df['pickup_longitude']=train_df['pickup_longitude'].apply(lambda x:'%.2f' %x).astype(str)
-train_df['pickup_latitude']=train_df['pickup_latitude'].apply(lambda x:'%.2f' %x).astype(str)
-train_df['dropoff_longitude']=train_df['dropoff_longitude'].apply(lambda x:'%.2f' %x).astype(str)
-train_df['dropoff_latitude']=train_df['dropoff_latitude'].apply(lambda x:'%.2f' %x).astype(str)
+
 print(train_df.dtypes)
 
 
@@ -334,6 +391,9 @@ plt.show()
 
 
 y_test_pred = model_lin.predict(X_test)
+y_test_pred[y_test_pred>100]=100
+y_test_pred[y_test_pred<0]=0
+
 plot_prediction_analysis(y_test, y_test_pred, title='Linear Model - Testset')
 
 test_set_pedict_result_tmp=pd.concat([pd.DataFrame(y_test),pd.DataFrame(y_test_pred)],axis=1)
