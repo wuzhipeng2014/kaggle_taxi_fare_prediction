@@ -101,7 +101,8 @@ from sklearn.cluster import KMeans
 
 print('train_df_distance_within_one_km.shape=' )
 print(train_df_distance_within_one_km.shape)
-cluster_input_x=pd.DataFrame(train_df_distance_within_one_km[['pickup_longitude','pickup_latitude','fare_amount']],dtype=float).values
+# cluster_input_x=pd.DataFrame(train_df_distance_within_one_km[['pickup_longitude','pickup_latitude','fare_amount']],dtype=float).values
+cluster_input_x=pd.DataFrame(train_df_distance_within_one_km[['pickup_longitude','pickup_latitude']],dtype=float).values
 
 cluster_input_x=np.multiply(cluster_input_x,100)
 
